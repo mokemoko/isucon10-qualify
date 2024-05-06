@@ -7,6 +7,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/ashwanthkumar/slack-go-webhook"
 	"github.com/isucon10-qualify/isucon10-qualify/bench/score"
 )
 
@@ -32,7 +33,14 @@ func init() {
 	}
 }
 
-func Report(msgs []string, critical, application, trivial int) error {
+func notifySlack(webhookUrl string, msg string) {
+	payload := slack.Payload{
+		Text: msg,
+	}
+	slack.Send(webhookUrl, "", payload)
+}
+
+func Report(msgs []string, critical, application, trivial int, webhookUrl string) error {
 	err := update(msgs, critical, application, trivial)
 	if err != nil {
 		return err
@@ -45,6 +53,7 @@ func Report(msgs []string, critical, application, trivial int) error {
 		return err
 	}
 	fmt.Println(string(bytes))
+	notifySlack(webhookUrl, string(bytes))
 	return nil
 }
 

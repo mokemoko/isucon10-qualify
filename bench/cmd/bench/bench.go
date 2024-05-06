@@ -23,7 +23,11 @@ type Config struct {
 	TargetHost   string
 
 	AllowedIPs []net.IP
+
+	WebhookUrl string
 }
+
+var conf = Config{}
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
@@ -32,19 +36,20 @@ func init() {
 
 func main() {
 	defer func() {
-		reporter.Report(fails.Get())
+		msgs, critical, application, trivial := fails.Get()
+		reporter.Report(msgs, critical, application, trivial, conf.WebhookUrl)
 	}()
 
 	flags := flag.NewFlagSet("isucon10-qualify", flag.ContinueOnError)
 	flags.SetOutput(os.Stderr)
 
-	conf := Config{}
 	dataDir := ""
 	fixtureDir := ""
 
 	flags.StringVar(&conf.TargetURLStr, "target-url", "http://localhost:1323", "target url")
 	flags.StringVar(&dataDir, "data-dir", "../initial-data", "data directory")
 	flags.StringVar(&fixtureDir, "fixture-dir", "../webapp/fixture", "fixture directory")
+	flags.StringVar(&conf.WebhookUrl, "webhook-url", "", "webhook url")
 
 	err := flags.Parse(os.Args[1:])
 	if err != nil {
